@@ -31,23 +31,28 @@ Pressing a button opens a pre-filled issue — just submit it. Within ~30 second
    humans vote what it should have done there  ←── you are here
                      │
                      ▼
-   Sunday 00:00 UTC: CI takes the majority vote, makes it the
-   argmax action for that state, and commits the new weights
+   every vote is appended to dataset.jsonl — the permanent
+   training set. nothing is ever thrown away.
+                     │
+                     ▼
+   Sunday 00:00 UTC: CI rebuilds the policy from the ENTIRE
+   dataset in one batch step — per state, each teacher's latest
+   label counts once, and the aggregated counts ARE the weights
                      │
                      ▼
         next week's replay shows whether the crowd was right
 ```
 
-The agent was initialized knowing only how to `RUN`. Everything else it knows, people taught it — the commit history of `policy.json` *is* the training log.
+The agent was initialized knowing only how to `RUN`. Everything else it knows, people taught it — and because training is a pure function of the ledger, `policy.json` is reproducible from `dataset.jsonl` at any point in history.
 
 ## Why this exists
 
 Most profile animations are decoration: your click changes nothing. Here the click is the whole point — it fires CI, lands in a JSON ballot, and on Sunday it literally becomes model weights. It's the smallest honest version of learning from human feedback:
 
 - a real environment (deterministic side-scroller, `level.json`)
-- a real policy (tabular Q — state pattern → action scores, `policy.json`)
-- real human labels (majority vote at the failure state = behavior cloning)
-- a real training cadence (weekly, in CI, weights committed)
+- a real policy (tabular — state pattern → action scores, `policy.json`)
+- a real dataset (`dataset.jsonl`, append-only — every vote ever cast, kept forever)
+- real training (weekly batch rebuild from the full dataset, in CI, weights committed)
 - a real learning curve (distance per week, on the card)
 
 And one emergent bonus: patterns are position-independent, so teach it to jump one spike and it clears *every* identical spike — small-scale generalization you can watch happen.
@@ -58,8 +63,11 @@ And one emergent bonus: patterns are position-independent, so teach it to jump o
 
 ```
 level.json      the world: track length + obstacle map
-policy.json     the weights — updated only by weekly training
-votes.json      current question + this week's ballots
+dataset.jsonl   append-only ledger of every vote ever cast — the actual
+                training data; the policy is derived from it
+policy.json     the weights — rebuilt each Sunday from the full dataset
+votes.json      the current question + this week's live tally (a view,
+                not the source of truth)
 state.json      week counter + full history (the learning curve)
 replay.svg      the live card, regenerated on every vote and every training run
 scripts/

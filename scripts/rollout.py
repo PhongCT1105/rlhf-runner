@@ -163,7 +163,11 @@ def render(level, steps, died_at, death_state, state, votes):
     else:
         parts.append(text(28, 262, "the crowd taught it every move — new level soon", GREEN, 11))
     parts += learning_curve(state["history"], distance, level["length"] - 1)
-    parts.append(text(28, H - 14, "vote = open a prefilled github issue · ci counts it in ~30s and this card updates", DIM, 10))
+    dataset = engine.load_dataset()
+    teachers = len({r["user"] for r in dataset})
+    parts.append(text(28, H - 14,
+                      f"dataset: {len(dataset)} votes collected · {teachers} teacher{'s' if teachers != 1 else ''} · "
+                      "every vote is kept forever — sunday training rebuilds the weights from the full dataset", DIM, 10))
     parts.append(f"<rect x='{W - 36}' y='{H - 26}' width='7' height='13' fill='{CYAN}'>"
                  f"<animate attributeName='opacity' values='1;0;1' dur='1.2s' repeatCount='indefinite'/></rect>")
     parts.append("</svg>")

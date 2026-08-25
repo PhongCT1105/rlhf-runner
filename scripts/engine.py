@@ -30,6 +30,34 @@ def save(name, data):
         f.write("\n")
 
 
+def append_dataset(record):
+    """Every vote ever cast is appended here — the permanent training set."""
+    with open(os.path.join(ROOT, "dataset.jsonl"), "a") as f:
+        f.write(json.dumps(record) + "\n")
+
+
+def load_dataset():
+    path = os.path.join(ROOT, "dataset.jsonl")
+    if not os.path.exists(path):
+        return []
+    with open(path) as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+def aggregate(dataset):
+    """Aggregate the full ledger: per state, each teacher's latest label counts once.
+
+    Returns {state: {action: count}} — these counts ARE the policy weights.
+    """
+    latest = {}  # (state, user) -> action, in ledger order so later entries win
+    for rec in dataset:
+        latest[(rec["state"], rec["user"])] = rec["action"]
+    agg = {}
+    for (state, _user), action in latest.items():
+        agg.setdefault(state, {a: 0.0 for a in ACTIONS})[action] += 1.0
+    return agg
+
+
 def cell(level, x):
     return level["obstacles"].get(str(x), ".") if 0 <= x < level["length"] else "."
 

@@ -11,6 +11,7 @@ workflow's reply comment.
 """
 
 import os
+from datetime import datetime, timezone
 
 import engine
 
@@ -33,6 +34,14 @@ def main():
         emit("rejected")
         return
 
+    # the ledger keeps every event forever; votes.json is just this week's live tally
+    engine.append_dataset({
+        "week": engine.load("state.json")["week"],
+        "state": votes["question"],
+        "user": user,
+        "action": action,
+        "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    })
     votes["votes"][user] = action
     engine.save("votes.json", votes)
     emit("counted")
