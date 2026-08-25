@@ -1,0 +1,31 @@
+name: Weekly Training
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Sundays 00:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: votes
+  cancel-in-progress: false
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Train on this week's votes
+        run: python3 scripts/train.py
+
+      - name: Commit the new weights
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add policy.json state.json votes.json replay.svg
+          git diff --cached --quiet || { git commit -m "Weekly training: policy updated from crowd votes"; git push; }
