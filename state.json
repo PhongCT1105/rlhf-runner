@@ -1,5 +1,5 @@
 {
-  "week": 2,
+  "week": 3,
   "history": [
     {
       "week": 1,
@@ -7,6 +7,13 @@
       "outcome": "died at 11m seeing S..",
       "taught": "JUMP",
       "votes": 4
+    },
+    {
+      "week": 2,
+      "distance": 21,
+      "outcome": "died at 21m seeing SS.",
+      "taught": null,
+      "votes": 0
     }
   ]
 }
